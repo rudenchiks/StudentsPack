@@ -34,7 +34,7 @@ class GradeBook {
 public:
     vector<Student> students;
 
-    void addStudent(const Student& student) {
+    void addStudent(const Student& student) { 
         students.push_back(student); //в массив добавляем инфу о студентах
     }
 
