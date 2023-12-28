@@ -1,12 +1,10 @@
-﻿//Students Pack
-
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #include <string>
 
 using namespace std;
 
-//констаннты для определения настроения преподавателей
+// Constants to define teacher moods
 const int GOOD = 1;
 const int BAD = 2;
 
@@ -40,14 +38,14 @@ public:
     string name;
     int mood;
 
-    //конструктор для инициализации настроения преподавателя
+    Teacher() : mood(GOOD) {}
+
     Teacher(string teacherName, int teacherMood) : name(teacherName), mood(teacherMood) {}
 
     void evalSt(Student& student, int mark1, int mark2, int mark3) const {
         student.getMarks(mark1, mark2, mark3);
     }
 
-private:
     int calculateFinalMark(int mark1, int mark2, int mark3, bool isExcellent) const {
         int baseMark = (mark1 + mark2 + mark3) / 3;
 
@@ -63,141 +61,119 @@ private:
             return (rand() % 2 == 0) ? 4 : 5;
         }
     }
+};
 
+class Class {
+public:
+    string className;
+    Teacher teacher;
+    vector<Student> students;
+
+    Class(string name, const Teacher& teacher) : className(name), teacher(teacher) {}
+
+    void addStudent(const Student& student) {
+        students.push_back(student);
+    }
 };
 
 class GradeBook {
 public:
-    vector<Student> students;
-    vector<Teacher> teachers;
+    vector<Class> classes;
 
-    void addStudent(const Student& student) {
-        students.push_back(student); //в массив добавляем инфу о студентах
+    void addClass(const Class& newClass) {
+        classes.push_back(newClass);
     }
 
-    void SetMarks(Student& student, int m1, int m2, int m3) {
-        student.getMarks(m1, m2, m3);
-    }
-
-    void addTeacher(const Teacher& teacher) {
-        teachers.push_back(teacher);
-    }
-
-    int findTeacher(const string& teacherName) const {
-        for (size_t i = 0; i < teachers.size(); ++i) {
-            if (teachers[i].name == teacherName) {
-                return int(i);
+    void addStudentToClass(const string& className, const Student& student) {
+        for (auto& classObj : classes) {
+            if (classObj.className == className) {
+                classObj.addStudent(student);
+                break;
             }
         }
-        return -1; // -1, если препод не найден
     }
 
-    int findStudent(const string& studentName) const {
-        for (size_t i = 0; i < students.size(); ++i) {
-            if (students[i].name == studentName) {
-                return int(i);
+    void SetMarks(const string& className, const string& teacherName, const string& studentName,
+        int m1, int m2, int m3) {
+        for (auto& classObj : classes) {
+            if (classObj.className == className && classObj.teacher.name == teacherName) {
+                for (auto& student : classObj.students) {
+                    if (student.name == studentName) {
+                        classObj.teacher.evalSt(student, m1, m2, m3);
+                        break;
+                    }
+                }
+                break;
             }
         }
-        return -1; // -1, если студент не найден
     }
 
     void PrintInfo() const {
-        for (const auto& student : students) {
-            student.InfoStudent();
+        for (const auto& classObj : classes) {
+            cout << "Class: " << classObj.className << endl;
+            for (const auto& student : classObj.students) {
+                student.InfoStudent();
+            }
         }
     }
 };
 
-
 int main() {
-
     setlocale(0, "");
 
     GradeBook gradeBook;
 
-    // Добавление студентов
-    int numStudents;
-    cout << "Enter the number of students: ";
-    cin >> numStudents;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
+    // Add classes
+    int numClasses;
+    cout << "Enter the number of classes: ";
+    cin >> numClasses;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    for (int i = 0; i < numStudents; ++i) {
-        Student student;
-        cout << "Enter student name: ";
-        getline(cin, student.name);
-        gradeBook.addStudent(student);
-    }
+    for (int i = 0; i < numClasses; ++i) {
+        string className, teacherName;
+        Teacher teacher;
 
-    // Добавление преподавателей
-    int numTeachers;
-    cout << "Enter the number of teachers: ";
-    cin >> numTeachers;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
+        cout << "Enter class name for class " << (i + 1) << ": ";
+        getline(cin, className);
 
-    for (int i = 0; i < numTeachers; ++i) {
-        string teacherName;
-        //Teacher teacher;
-        cout << "Enter teacher name: ";
+        cout << "Enter teacher name for class " << className << ": ";
         getline(cin, teacherName);
 
-        Teacher teacher(teacherName, GOOD);
-        gradeBook.addTeacher(teacher);
+        teacher = Teacher(teacherName, GOOD);
+
+        Class newClass(className, teacher);
+        gradeBook.addClass(newClass);
+
+        // Add students to the class
+        int numStudents;
+        cout << "Enter the number of students for class " << className << ": ";
+        cin >> numStudents;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        for (int j = 0; j < numStudents; ++j) {
+            Student student;
+            cout << "Enter student name for class " << className << ": ";
+            getline(cin, student.name);
+
+            int mark1, mark2, mark3;
+            cout << "Enter marks for " << student.name << " in class " << className << " (separated by spaces): ";
+            cin >> mark1 >> mark2 >> mark3;
+
+            // Set marks for the student
+            student.getMarks(mark1, mark2, mark3);
+
+            // Add the student to the class
+            newClass.addStudent(student);
+
+            // Print the average mark for the student
+            cout << "Average mark for " << student.name << ": " << student.mark_sum << endl;
+
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear newline from the buffer
+        }
     }
 
-    // какой препод будет ставить оценк
-    string teacherName;
-    int teacherIndex;
-
-    do {
-        cout << "Enter teacher name to evaluate students: ";
-        getline(cin, teacherName);
-        teacherIndex = gradeBook.findTeacher(teacherName);
-
-        if (teacherIndex == -1) {
-            cout << "Teacher is not found. Please enter another teacher name." << endl;
-        }
-    } while (teacherIndex == -1);
-
-    //выставление оценок студентам
-    do {
-        // Выбор студента для выставления оценок
-        string studentName;
-        int studentIndex;
-
-        do {
-            cout << "Enter student name to evaluate: ";
-            getline(cin, studentName);
-            studentIndex = gradeBook.findStudent(studentName);
-
-            if (studentIndex == -1) {
-                cout << "Student is not found. Please enter another student name." << endl;
-            }
-        } while (studentIndex == -1);
-
-        // Препод выставляет оценки студенту
-        int mark1, mark2, mark3;
-        cout << "Enter marks for " << gradeBook.students[studentIndex].name << ": ";
-        cin >> mark1 >> mark2 >> mark3;
-        gradeBook.teachers[teacherIndex].evalSt(gradeBook.students[studentIndex], mark1, mark2, mark3);
-
-        // Выводим инфу о выбранном студенте
-        gradeBook.students[studentIndex].InfoStudent();
-
-        // поставить оценку другому студенту?
-        char another;
-        cout << "Do you want to evaluate another student? (y/n): ";
-        cin >> another;
-
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
-
-        if ((another != 'y') or (another != 'Y')) {
-            break; // Выход из цикла,если препод не оценивает еще студентов
-        }
-    } while (true);
-
-    // Выводим общую информацию о студентах
-    //cout << "Final information about students:" << endl;
-    //gradeBook.PrintInfo();
+    // Print final information
+    gradeBook.PrintInfo();
 
     return 0;
 }
