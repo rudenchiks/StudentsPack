@@ -6,6 +6,10 @@
 
 using namespace std;
 
+//констаннты для определения настроения преподавателей
+const int GOOD = 1;
+const int BAD = 2;
+
 class Student {
 public:
     string name;
@@ -34,9 +38,30 @@ public:
 class Teacher {
 public:
     string name;
+    int mood;
+
+    //конструктор для инициализации настроения преподавателя
+    Teacher(string teacherName, int teacherMood) : name(teacherName), mood(teacherMood) {}
 
     void evalSt(Student& student, int mark1, int mark2, int mark3) const {
         student.getMarks(mark1, mark2, mark3);
+    }
+
+private:
+    int calculateFinalMark(int mark1, int mark2, int mark3, bool isExcellent) const {
+        int baseMark = (mark1 + mark2 + mark3) / 3;
+
+        if (mood == GOOD) {
+            if (isExcellent) {
+                return 5;
+            }
+            else {
+                return 4;
+            }
+        }
+        else { // mood == BAD
+            return (rand() % 2 == 0) ? 4 : 5;
+        }
     }
 
 };
@@ -64,7 +89,7 @@ public:
                 return int(i);
             }
         }
-        return -1; // Возвращаем -1, если преподаватель не найден
+        return -1; // -1, если препод не найден
     }
 
     int findStudent(const string& studentName) const {
@@ -73,7 +98,7 @@ public:
                 return int(i);
             }
         }
-        return -1; // Возвращаем -1, если студент не найден
+        return -1; // -1, если студент не найден
     }
 
     void PrintInfo() const {
@@ -110,13 +135,16 @@ int main() {
     cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
 
     for (int i = 0; i < numTeachers; ++i) {
-        Teacher teacher;
+        string teacherName;
+        //Teacher teacher;
         cout << "Enter teacher name: ";
-        getline(cin, teacher.name);
+        getline(cin, teacherName);
+
+        Teacher teacher(teacherName, GOOD);
         gradeBook.addTeacher(teacher);
     }
 
-    // Выбор преподавателя для выставления оценок
+    // какой препод будет ставить оценк
     string teacherName;
     int teacherIndex;
 
@@ -130,7 +158,7 @@ int main() {
         }
     } while (teacherIndex == -1);
 
-    // Процесс выставления оценок студентам
+    //выставление оценок студентам
     do {
         // Выбор студента для выставления оценок
         string studentName;
@@ -146,7 +174,7 @@ int main() {
             }
         } while (studentIndex == -1);
 
-        // Преподаватель выставляет оценки студенту
+        // Препод выставляет оценки студенту
         int mark1, mark2, mark3;
         cout << "Enter marks for " << gradeBook.students[studentIndex].name << ": ";
         cin >> mark1 >> mark2 >> mark3;
@@ -160,17 +188,16 @@ int main() {
         cout << "Do you want to evaluate another student? (y/n): ";
         cin >> another;
 
-        // Очистка буфера и игнорирование лишних символов
-        //cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
 
-        if (tolower(another) != 'y') {
-            break; // Выход из цикла, если пользователь не хочет оценивать еще студентов
+        if ((another != 'y') or (another != 'Y')) {
+            break; // Выход из цикла,если препод не оценивает еще студентов
         }
     } while (true);
 
-    // Выводим общую информацию о студентах после завершения оценивания
-    cout << "Final information about students:" << endl;
-    gradeBook.PrintInfo();
+    // Выводим общую информацию о студентах
+    //cout << "Final information about students:" << endl;
+    //gradeBook.PrintInfo();
 
     return 0;
 }
