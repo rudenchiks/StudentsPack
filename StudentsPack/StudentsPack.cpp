@@ -4,7 +4,7 @@
 
 using namespace std;
 
-// Constants to define teacher moods
+// Constants to define teacher and parent moods
 const int GOOD = 1;
 const int BAD = 2;
 
@@ -25,10 +25,10 @@ public:
         cout << "An average rating of " << name << ": " << mark_sum << endl;
 
         if (isExcellentStudent()) {
-            cout << name << " Is an excellent student." << endl;
+            cout << name << " is an excellent student." << endl;
         }
         else {
-            cout << name << " Is not an excellent student." << endl;
+            cout << name << " is not an excellent student." << endl;
         }
     }
 };
@@ -59,6 +59,64 @@ public:
         }
         else { // mood == BAD
             return (rand() % 2 == 0) ? 4 : 5;
+        }
+    }
+};
+
+class Parent {
+public:
+    string name;
+    int mood;
+
+    Parent() : mood(GOOD) {}
+
+    Parent(string parentName, int parentMood) : name(parentName), mood(parentMood) {}
+
+    void tellAboutAllChildren(const vector<Student>& children) const {
+        cout << "Information about all children:" << endl;
+        for (const auto& child : children) {
+            tellAboutChild(child);
+        }
+    }
+
+    void tellAboutChild(const Student& child) const {
+        cout << "Information about " << child.name << ":" << endl;
+        if (mood == GOOD) {
+            cout << "I am a happy parent." << endl;
+            if (child.isExcellentStudent()) {
+                cout << child.name << " is an excellent student." << endl;
+            }
+            else {
+                cout << child.name << " is not an excellent student." << endl;
+            }
+        }
+        else {
+            cout << "I am not in a good mood." << endl;
+            cout << child.name << " is doing okay." << endl;
+        }
+    }
+
+    void tellRandomChildInfo(const vector<Student>& children) const {
+        if (!children.empty()) {
+            int randomIndex = rand() % children.size();
+            tellAboutChild(children[randomIndex]);
+        }
+        else {
+            cout << "No children to talk about." << endl;
+        }
+    }
+
+    void tellAboutSpecificChild(const vector<Student>& children, const string& childName) const {
+        bool found = false;
+        for (const auto& child : children) {
+            if (child.name == childName) {
+                tellAboutChild(child);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            cout << "Error: Child with name " << childName << " not found." << endl;
         }
     }
 };
@@ -172,8 +230,73 @@ int main() {
         }
     }
 
-    // Print final information
     gradeBook.PrintInfo();
+
+    Parent parent("ParentName", GOOD);
+    
+
+
+    // Add a menu for parents
+    int choice;
+
+    cout << "Parent menu:" << endl;
+    cout << "1. To tell about a particular child" << endl;
+    cout << "2. To tell about every child" << endl;
+    cout << "3. To tell about all children in sum" << endl;
+    cout << "0. Exti" << endl;
+    cout << "Choose: ";
+    cin >> choice;
+
+    switch (choice) {
+    case 1: {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        string childName, childInfo;
+        cout << "Enter the child's name: ";
+        getline(cin, childName);
+        cout << "Enter the information about the children: ";
+        getline(cin, childInfo);
+
+        parent.tellAboutChild(Student{ childName, 0 });
+        cout << "Information about the children " << childName << ": " << childInfo << endl;
+        break;
+    }
+    case 2: {
+        int numChildren;
+        cout << "Enter the number of children: ";
+        cin >> numChildren;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        for (int i = 0; i < numChildren; ++i) {
+            string childName, childInfo;
+            cout << "Enter the child's name " << (i + 1) << ": ";
+            getline(cin, childName);
+            cout << "Enter the information about the child " << childName << ": ";
+            getline(cin, childInfo);
+
+            parent.tellAboutChild(Student{ childName, 0 }); 
+            cout << "Information about the child " << childName << ": " << childInfo << endl;
+        }
+        break;
+    }
+    case 3: {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Enter information about all children: ";
+        string allChildrenInfo;
+        getline(cin, allChildrenInfo);
+        //parent.tellAboutAllChildren(gradeBook.classes[0].students);
+        cout << "Information about all children: " << allChildrenInfo << endl;
+        break;
+    }
+    case 0:
+        cout << "Exit the code." << endl;
+        break;
+    default:
+        cout << "Incorrect." << endl;
+        break;
+    }
+
+
 
     return 0;
 }
