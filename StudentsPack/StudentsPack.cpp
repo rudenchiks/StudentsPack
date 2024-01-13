@@ -4,7 +4,7 @@
 
 using namespace std;
 
-// Constants to define teacher and parent moods
+// Constants to define teacher, parent, and grandparent moods
 const int GOOD = 1;
 const int BAD = 2;
 
@@ -72,14 +72,14 @@ public:
 
     Parent(string parentName, int parentMood) : name(parentName), mood(parentMood) {}
 
-    void tellAboutAllChildren(const vector<Student>& children) const {
+    virtual void tellAboutAllChildren(const vector<Student>& children) const {
         cout << "Information about all children:" << endl;
         for (const auto& child : children) {
             tellAboutChild(child);
         }
     }
 
-    void tellAboutChild(const Student& child) const {
+    virtual void tellAboutChild(const Student& child) const {
         cout << "Information about " << child.name << ":" << endl;
         if (mood == GOOD) {
             cout << "I am a happy parent." << endl;
@@ -118,6 +118,18 @@ public:
         if (!found) {
             cout << "Error: Child with name " << childName << " not found." << endl;
         }
+    }
+};
+
+class Grandparent : public Parent {
+public:
+    Grandparent() : Parent("GrandparentName", GOOD) {}
+
+    // Переопределение метода для всегда положительного отзыва о детях
+    void tellAboutChild(const Student& child) const override {
+        cout << "Information about " << child.name << ":" << endl;
+        cout << "I am a happy grandparent." << endl;
+        cout << child.name << " is doing great." << endl;
     }
 };
 
@@ -233,17 +245,79 @@ int main() {
     gradeBook.PrintInfo();
 
     Parent parent("ParentName", GOOD);
-    
 
+    // Добавляем меню для родителя
+    int parentChoice;
 
-    // Add a menu for parents
-    int choice;
-
-    cout << "Parent menu:" << endl;
+    cout << "PARENT menu:" << endl;
     cout << "1. To tell about a particular child" << endl;
     cout << "2. To tell about every child" << endl;
     cout << "3. To tell about all children in sum" << endl;
-    cout << "0. Exti" << endl;
+    cout << "0. Exit" << endl;
+    cout << "Choose: ";
+    cin >> parentChoice;
+
+    switch (parentChoice) {
+    case 1: {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        string childName, childInfo;
+        cout << "Enter the child's name: ";
+        getline(cin, childName);
+        cout << "Enter the child's information: ";
+        getline(cin, childInfo);
+
+        parent.tellAboutChild(Student{ childName, 0 });
+        cout << "Information about the children " << childName << ": " << childInfo << endl;
+        break;
+    }
+    case 2: {
+        int numChildren;
+        cout << "Enter the number of children: ";
+        cin >> numChildren;
+
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        for (int i = 0; i < numChildren; ++i) {
+            string childName, childInfo;
+            cout << "Enter the name of the child " << (i + 1) << ": ";
+            getline(cin, childName);
+            cout << "Enter the info about the child " << childName << ": ";
+            getline(cin, childInfo);
+
+            parent.tellAboutChild(Student{ childName, 0 });
+            cout << "Info about the child " << childName << ": " << childInfo << endl;
+        }
+        break;
+    }
+    case 3: {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Enter the info about all children: ";
+        string allChildrenInfo;
+        getline(cin, allChildrenInfo);
+        parent.tellAboutAllChildren(gradeBook.classes[0].students);
+        cout << "Info about all children: " << allChildrenInfo << endl;
+        break;
+    }
+    case 0:
+        cout << "Exit programm." << endl;
+        break;
+    default:
+        cout << "Incorrect." << endl;
+        break;
+    }
+
+
+    // Create a Grandparent instance
+    Grandparent grandparent;
+
+    // Add a menu for grandparents
+    int choice;
+
+    cout << "Grandparent menu:" << endl;
+    cout << "1. To tell about a particular child" << endl;
+    cout << "2. To tell about every child" << endl;
+    cout << "3. To tell about all children in sum" << endl;
+    cout << "0. Exit" << endl;
     cout << "Choose: ";
     cin >> choice;
 
@@ -256,7 +330,7 @@ int main() {
         cout << "Enter the information about the children: ";
         getline(cin, childInfo);
 
-        parent.tellAboutChild(Student{ childName, 0 });
+        grandparent.tellAboutChild(Student{ childName, 0 });
         cout << "Information about the children " << childName << ": " << childInfo << endl;
         break;
     }
@@ -274,7 +348,7 @@ int main() {
             cout << "Enter the information about the child " << childName << ": ";
             getline(cin, childInfo);
 
-            parent.tellAboutChild(Student{ childName, 0 }); 
+            grandparent.tellAboutChild(Student{ childName, 0 });
             cout << "Information about the child " << childName << ": " << childInfo << endl;
         }
         break;
@@ -284,7 +358,7 @@ int main() {
         cout << "Enter information about all children: ";
         string allChildrenInfo;
         getline(cin, allChildrenInfo);
-        //parent.tellAboutAllChildren(gradeBook.classes[0].students);
+        grandparent.tellAboutAllChildren(gradeBook.classes[0].students);
         cout << "Information about all children: " << allChildrenInfo << endl;
         break;
     }
@@ -295,8 +369,6 @@ int main() {
         cout << "Incorrect." << endl;
         break;
     }
-
-
 
     return 0;
 }
